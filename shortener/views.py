@@ -6,7 +6,7 @@ from django.http import (
     Http404,
     HttpRequest,
     HttpResponse,
-    HttpResponsePermanentRedirect,
+    HttpResponseRedirect,
     JsonResponse,
 )
 from django.shortcuts import render
@@ -70,4 +70,4 @@ def redirect_view(request: HttpRequest, short_code: str) -> HttpResponse:
         long_url = url.long_url
         cache.set_long_url(short_code, long_url)
 
-    return HttpResponsePermanentRedirect(long_url)
+    return HttpResponseRedirect(long_url)
