@@ -21,9 +21,9 @@ BASE_DIR = Path(__file__).resolve().parent
 # Load variables from .env at the repo root into os.environ.
 load_dotenv(BASE_DIR / '.env')
 
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'dev-insecure-change-me')
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
-DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() == 'true'
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
