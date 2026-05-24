@@ -46,6 +46,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # Run rate limiter early — before sessions/auth/CSRF — so blocked
+    # requests don't waste cycles on cookie parsing / DB session lookups.
+    'shortener.middleware.RateLimitMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -108,6 +111,11 @@ REDIS_URL = os.environ.get(
     ),
 )
 REDIS_CACHE_TTL_SECONDS = int(os.environ.get('REDIS_CACHE_TTL_SECONDS', 86400))
+
+# Rate limiting (fixed-window per IP). See shortener/middleware.py.
+RATE_LIMIT_WINDOW_SECONDS = int(os.environ.get('RATE_LIMIT_WINDOW_SECONDS', 60))
+RATE_LIMIT_SHORTEN_PER_MINUTE = int(os.environ.get('RATE_LIMIT_SHORTEN_PER_MINUTE', 10))
+RATE_LIMIT_REDIRECT_PER_MINUTE = int(os.environ.get('RATE_LIMIT_REDIRECT_PER_MINUTE', 100))
 
 PUBLIC_BASE_URL = os.environ.get('PUBLIC_BASE_URL', 'http://127.0.0.1:8000')
 

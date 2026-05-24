@@ -4,6 +4,8 @@ singleton. We talk to redis-py directly (not Django's cache framework) so
 the cache-aside pattern stays explicit in our view code.
 """
 
+import time
+
 import redis
 from django.conf import settings
 
@@ -61,3 +63,18 @@ def scan_click_keys():
     # so it's safe on a large keyspace — never blocks Redis.
     for key in client().scan_iter(match=CLICK_SCAN_PATTERN):
         yield key.split(':', 1)[1]
+
+
+def rate_limit_check(bucket: str, ip: str, window_seconds: int) -> tuple[int, int]:
+    # Fixed-window counter. Returns (count_after_incr, seconds_until_window_resets).
+    # The window number is encoded in the key, so rolling over to the next
+    # window uses a fresh key automatically — no manual reset needed.
+    now = int(time.time())
+    window = now // window_seconds
+    key = f'ratelimit:{bucket}:{ip}:{window}'
+    pipe = client().pipeline()
+    pipe.incr(key)
+    pipe.expire(key, window_seconds)
+    count, _ = pipe.execute()
+    seconds_until_reset = window_seconds - (now % window_seconds)
+    return count, seconds_until_reset
