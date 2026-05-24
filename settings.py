@@ -85,6 +85,12 @@ DATABASES = {
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
         'HOST': os.environ.get('POSTGRES_HOST', '127.0.0.1'),
         'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+        # sslmode controls TLS to Postgres.
+        # Managed services (Neon, RDS, Cloud SQL) require 'require' or stricter.
+        # Local Postgres usually has no SSL; 'prefer' works for both.
+        'OPTIONS': {
+            'sslmode': os.environ.get('POSTGRES_SSLMODE', 'prefer'),
+        },
     }
 }
 
