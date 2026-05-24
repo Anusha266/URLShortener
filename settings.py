@@ -91,9 +91,16 @@ DATABASES = {
 # Redis (used directly via redis-py, not Django's cache framework — keeps
 # the cache-aside pattern visible in our view code rather than hidden behind
 # Django's cache abstraction).
-REDIS_HOST = os.environ.get('REDIS_HOST', '127.0.0.1')
-REDIS_PORT = int(os.environ.get('REDIS_PORT', 6379))
-REDIS_DB = int(os.environ.get('REDIS_DB', 0))
+# Prefer REDIS_URL (12-factor style, set by Railway/Render); fall back to
+# individual host/port/db for local docker-compose.
+REDIS_URL = os.environ.get(
+    'REDIS_URL',
+    'redis://{host}:{port}/{db}'.format(
+        host=os.environ.get('REDIS_HOST', '127.0.0.1'),
+        port=os.environ.get('REDIS_PORT', 6379),
+        db=os.environ.get('REDIS_DB', 0),
+    ),
+)
 REDIS_CACHE_TTL_SECONDS = int(os.environ.get('REDIS_CACHE_TTL_SECONDS', 86400))
 
 PUBLIC_BASE_URL = os.environ.get('PUBLIC_BASE_URL', 'http://127.0.0.1:8000')

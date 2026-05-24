@@ -13,12 +13,9 @@ _client = None
 def client() -> redis.Redis:
     global _client
     if _client is None:
-        _client = redis.Redis(
-            host=settings.REDIS_HOST,
-            port=settings.REDIS_PORT,
-            db=settings.REDIS_DB,
-            decode_responses=True,
-        )
+        # from_url parses redis://[:password@]host:port/db so the same code
+        # works locally (no auth) and on managed Redis (with auth).
+        _client = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
     return _client
 
 
