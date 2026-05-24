@@ -70,4 +70,30 @@ def redirect_view(request: HttpRequest, short_code: str) -> HttpResponse:
         long_url = url.long_url
         cache.set_long_url(short_code, long_url)
 
+    # Write-buffered click counter: stays in Redis until flush_clicks moves it
+    # to Postgres. Keeps the redirect path off the DB write path entirely.
+    cache.incr_click(short_code)
+
     return HttpResponseRedirect(long_url)
+
+
+@require_http_methods(['GET'])
+def stats_view(request: HttpRequest, short_code: str) -> JsonResponse:
+    try:
+        url = Url.objects.only('short_code', 'long_url', 'click_count').get(short_code=short_code)
+    except Url.DoesNotExist:
+        return JsonResponse({'error': 'short code not found'}, status=404)
+
+    # Combine durable (DB) + buffered (Redis) so the count is up-to-the-second
+    # even between flushes. After flush_clicks runs, buffered drops to 0 and
+    # the durable count absorbs it — the sum stays the same.
+    durable = url.click_count
+    buffered = cache.get_buffered_clicks(short_code)
+
+    return JsonResponse({
+        'short_code': url.short_code,
+        'long_url': url.long_url,
+        'clicks': durable + buffered,
+        'clicks_durable': durable,
+        'clicks_buffered': buffered,
+    })

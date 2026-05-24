@@ -8,6 +8,9 @@ class Url(models.Model):
     long_url = models.TextField()
     short_code = models.CharField(max_length=12, unique=True, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    # Durable click count. Live counts buffer in Redis (clicks:<short_code>)
+    # and are flushed here by the flush_clicks management command.
+    click_count = models.BigIntegerField(default=0)
 
     def __str__(self):
         return f'{self.short_code} -> {self.long_url}'
